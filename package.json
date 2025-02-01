@@ -1,0 +1,42 @@
+{
+	"name": "skilltracker",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint ."
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"globals": "^15.14.0",
+		"prettier": "^3.4.2",
+		"prettier-plugin-svelte": "^3.3.3",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"typescript": "^5.0.0",
+		"typescript-eslint": "^8.20.0",
+		"vite": "^6.0.0"
+	},
+	"dependencies": {
+		"@popperjs/core": "^2.11.8",
+		"@types/bootstrap": "^5.2.10",
+		"@types/jquery": "^3.5.32",
+		"@types/select2": "^4.0.63",
+		"bootstrap": "^5.3.3",
+		"jquery": "^3.7.1",
+		"ldrs": "^1.0.2",
+		"lucide-svelte": "^0.474.0",
+		"sass": "1.69.5",
+		"select2": "^4.1.0-rc.0",
+		"svelte-5-french-toast": "^2.0.4"
+	}
+}
