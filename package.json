@@ -32,6 +32,7 @@
 		"@types/jquery": "^3.5.32",
 		"@types/select2": "^4.0.63",
 		"bootstrap": "^5.3.3",
+		"dayjs": "^1.11.13",
 		"jquery": "^3.7.1",
 		"ldrs": "^1.0.2",
 		"lucide-svelte": "^0.474.0",

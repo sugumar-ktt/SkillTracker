@@ -64,9 +64,13 @@ body {
 	overflow-x: hidden;
 }
 
+hr {
+	border-color: var(--color-neutral-700) !important;
+}
+
 .spinner {
 	height: 100%;
-	width: 100%;
+	width: auto;
 	display: grid;
 	place-items: center;
 }

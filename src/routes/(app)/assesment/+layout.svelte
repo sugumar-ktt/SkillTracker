@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Clock, CodeXml, Menu } from 'lucide-svelte';
 	import { Spring } from 'svelte/motion';
-	import type { LayoutProps } from '../$types';
+	import type { LayoutProps } from '../../$types';
 	import ProgressBar from './ProgressBar.svelte';
 	import QuestionNavigation from './QuestionNavigation.svelte';
 
