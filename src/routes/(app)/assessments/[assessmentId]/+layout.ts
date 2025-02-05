@@ -11,6 +11,7 @@ export const load: LayoutLoad = async ({ fetch, params }) => {
 	if (error || !result.data) {
 		redirect(302, '/');
 	}
+
 	return {
 		assessmentAttempt: result
 	};

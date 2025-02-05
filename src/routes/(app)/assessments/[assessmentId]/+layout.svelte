@@ -19,8 +19,8 @@
 	let { children, data }: LayoutProps = $props();
 
 	let assesmentAttempt = $derived(data.assessmentAttempt.data);
-	let attemptDetails = $derived(assesmentAttempt.AssessmentAttemptDetails || []);
 	let progress = $derived.by(() => {
+		const attemptDetails = assesmentAttempt.AssessmentAttemptDetails || [];
 		const attempted = attemptDetails.filter((a) => a.isAttempted).length;
 		return Math.round((attempted / attemptDetails.length) * 100);
 	});
@@ -49,8 +49,6 @@
 				attemptId: assesmentAttempt.id
 			};
 
-			console.log($sessionStore);
-
 			const { error, result } = await fetchExtended<APIResponse<boolean>>(
 				fetch,
 				`${constants.API_URL}/api/assessments/${assesmentAttempt.AssessmentId}/complete`,
@@ -71,7 +69,7 @@
 				throw new ValidationError(result.error);
 			}
 
-			goto(`/assessments/result/${assesmentAttempt.id}`);
+			await goto(`/assessments/result/${assesmentAttempt.id}`);
 		} catch (error) {
 			console.log(error);
 			if (error instanceof ValidationError) {
@@ -177,7 +175,11 @@
 	</main>
 
 	<aside class="sidebar me-1 mb-3" style="width: {sidebarWidth.current}rem">
-		<QuestionNavigation {attemptDetails} {currentAttemptDetail} isDisabled={isSubmissionLoading} />
+		<QuestionNavigation
+			attemptDetails={assesmentAttempt.AssessmentAttemptDetails || []}
+			{currentAttemptDetail}
+			isDisabled={isSubmissionLoading}
+		/>
 	</aside>
 
 	<nav class="right-menu">

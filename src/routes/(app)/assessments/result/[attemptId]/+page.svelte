@@ -1,36 +1,55 @@
 <script lang="ts">
 	import { CircleCheckBig, Clock } from 'lucide-svelte';
+	import type { PageProps } from './$types';
+	import { waveform } from 'ldrs';
+	import { type Submission } from '$src/types';
+	import dayjs from 'dayjs';
+	import duration from 'dayjs/plugin/duration';
+	waveform.register();
+
+	dayjs.extend(duration);
+
+	let { data }: PageProps = $props();
 </script>
 
 <div class="result min-vh-100 vstack align-items-center justify-content-center p-3 text-center">
-	<div class="result__container">
-		<div class="card">
-			<div class="card-body p-4">
-				<div class="vstack align-items-center">
-					<div class="icon-wrapper mb-4">
-						<CircleCheckBig size="40" />
-					</div>
-					<div class="fs-3 fw-semibold">Assessment Submitted</div>
-					<p class="text-body-secondary">
-						Thank you for completing the assessment. Your submission has been received.
-					</p>
-					<div class="vstack gap-3">
-						<div class="result__info-item">
-							<span class="text-body-emphasis fw-medium">Attempted Questions</span>
-							<span>25</span>
+	{#await data.assessmentResult}
+		<div class="h-100 w-100" style="display: grid; place-items: center;">
+			<l-waveform size="48" stroke="4" speed="1" color="var(--color-primary-500)"></l-waveform>
+		</div>
+	{:then response}
+		{@const assessmentResult = (response.result?.data || {}) as Submission}
+		<div class="result__container">
+			<div class="card h-100">
+				<div class="card-body p-4">
+					<div class="vstack align-items-center">
+						<div class="icon-wrapper mb-4">
+							<CircleCheckBig size="40" />
 						</div>
-						<div class="result__info-item">
-							<span class="text-body-emphasis fw-medium">Time Taken</span>
-							<div class="hstack gap-2">
-								<Clock size="1em" />
-								00:05
+						<div class="fs-3 fw-semibold">Assessment Submitted</div>
+						<p class="text-body-secondary">
+							Thank you for completing the assessment. Your submission has been recorded.
+						</p>
+						<div class="vstack gap-3">
+							<div class="result__info-item">
+								<span class="text-body-emphasis fw-medium">Attempted Questions</span>
+								<span>{assessmentResult.attemptedQuestions}</span>
+							</div>
+							<div class="result__info-item">
+								<span class="text-body-emphasis fw-medium">Time Taken</span>
+								<div class="hstack gap-2">
+									<Clock size="1em" />
+									<span>
+										{dayjs.duration(assessmentResult.duration, 'milliseconds').get('minutes')} Minutes
+									</span>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	{/await}
 </div>
 
 <style>

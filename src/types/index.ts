@@ -89,3 +89,15 @@ export type Question = {
 	AssessmentId?: number;
 	snippet?: Snippet;
 };
+
+export type Submission = {
+	id?: number;
+	submittedAt: string;
+	totalScore: number;
+	attemptedQuestions: number;
+	correctAnswers: number;
+	duration: number;
+	sessionId: number;
+	CandidateId: number;
+	AssessmentAttemptId: number;
+};

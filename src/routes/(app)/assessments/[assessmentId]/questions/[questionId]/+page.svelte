@@ -101,6 +101,9 @@
 	}
 
 	function handleSelection(choice: ChoiceType) {
+		if (selectedChoice?.id != choice?.id) {
+			saveSelection(choice);
+		}
 		selectedChoice = choice;
 	}
 
@@ -125,7 +128,6 @@
 
 	beforeNavigate(() => {
 		isPageLoading = true;
-		saveSelection(selectedChoice);
 	});
 </script>
 
@@ -150,7 +152,10 @@
 			{#if question?.snippet?.code}
 				<p class="mb-1">{question?.description}</p>
 				<div class="mb-4">
-					<Codeblock code={question.snippet.code} language={PrismLanguage.Java} />
+					<Codeblock
+						code={question.snippet.code}
+						language={question.snippet.language as PrismLanguage}
+					/>
 				</div>
 			{:else}
 				<p class="mb-4">{question?.description}</p>
