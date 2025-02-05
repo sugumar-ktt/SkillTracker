@@ -17,7 +17,21 @@
 
 	let { code = '', language = PrismLanguage.JavaScript }: Props = $props();
 
-	let highlightedCode = $derived(Prism.highlight(code.trim(), Prism.languages[language], language));
+	let highlightedCode = $derived.by(() => {
+		const grammar = Prism.languages[language];
+		if (!grammar) {
+			console.warn(
+				`Prism does not support language "${language}". Falling back to plain HTML rendering.`
+			);
+			return code;
+		}
+		try {
+			return Prism.highlight(code.trim(), grammar, language);
+		} catch (error) {
+			console.error('Prism.highlight error:', error);
+			return code;
+		}
+	});
 </script>
 
 <pre class="language-{language}">
