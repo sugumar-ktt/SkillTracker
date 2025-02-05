@@ -134,7 +134,7 @@
 <Toaster />
 <section class="question vstack justify-content-between h-100">
 	{#if isPageLoading}
-		<div class="hstack justify-content-center p-5 mt-5" style="min-height: 40vh;">
+		<div class="hstack justify-content-center mt-5" style="min-height: 30vh;">
 			<l-waveform size="48" stroke="4" speed="1" color="var(--color-primary-500)"></l-waveform>
 		</div>
 	{:else}
