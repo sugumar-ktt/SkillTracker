@@ -15,7 +15,6 @@
 	import { waveform } from 'ldrs';
 	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
-	import { fade } from 'svelte/transition';
 	import type { PageProps } from './$types';
 	import Choice from './Choice.svelte';
 	waveform.register();
