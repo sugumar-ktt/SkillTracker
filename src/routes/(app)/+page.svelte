@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import ErrorComponent from '$components/Error.svelte';
 	import constants from '$src/lib/constants';
+	import { FullscreenManager } from '$src/lib/proctoring';
 	import { fetchExtended } from '$src/lib/utils';
 	import { ValidationError } from '$src/lib/utils/error';
 	import {
@@ -13,11 +15,11 @@
 	import duration from 'dayjs/plugin/duration';
 	import relativeTime from 'dayjs/plugin/relativeTime';
 	import { waveform } from 'ldrs';
-	import { CirclePlay, Clock, FileText, Loader2, Target, University, User } from 'lucide-svelte';
+	import { CirclePlay, Clock, FileText, Loader2, Target, User } from 'lucide-svelte';
 	import { onMount, type Component } from 'svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 	import type { PageProps } from './$types';
-	import ErrorComponent from '$components/Error.svelte';
+	const fullScreenManager = new FullscreenManager({ lockOrientation: true });
 
 	waveform.register();
 	dayjs.extend(duration);
@@ -28,7 +30,7 @@
 	let candidate: Candidate | undefined = $state();
 	let isStartTestBtnLoading = $state(false);
 
-	const onAssessmentStart = async (assessmentId: number) => {
+	const handleAssesmentStart = async (assessmentId: number) => {
 		try {
 			isStartTestBtnLoading = true;
 			const { error, result } = await fetchExtended<APIResponse<AssessmentAttempt>>(
@@ -46,7 +48,7 @@
 			if (!result.success) {
 				throw new ValidationError(result.error);
 			}
-
+			await fullScreenManager.enable();
 			await goto(`/assessments/${result.data.AssessmentId}`);
 		} catch (error) {
 			console.log(error);
@@ -155,7 +157,7 @@
 							<button
 								type="button"
 								class="btn btn-primary text-white hstack gap-2"
-								onmousedown={() => onAssessmentStart(assessment.id)}
+								onmousedown={() => handleAssesmentStart(assessment.id)}
 							>
 								{#if isStartTestBtnLoading}
 									<span class="spinner"><Loader2 /></span>
