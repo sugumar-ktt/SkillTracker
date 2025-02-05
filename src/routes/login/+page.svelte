@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import kttHorizontalLogo from '$assets/images/ktt-horizontal-logo.png';
 	import slide1Bg from '$assets/images/showcase/s-1-bg.png';
 	import slide1Content from '$assets/images/showcase/s-1-content.png';
@@ -10,18 +11,16 @@
 	import slide6Content from '$assets/images/showcase/s-6-content.png';
 	import slide7Content from '$assets/images/showcase/s-7-content.png';
 	import Select2 from '$src/components/Select2.svelte';
+	import constants from '$src/lib/constants';
+	import { ValidationError } from '$src/lib/utils/error';
+	import { sessionStore } from '$src/stores';
+	import type { APIResponse, Candidate, Department } from '$src/types';
 	import { Carousel } from 'bootstrap';
 	import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
-	import type { PageProps } from './$types';
-	import type { APIResponse, Candidate, Department } from '$src/types';
 	import type { EventHandler } from 'svelte/elements';
-	import { fetchExtended } from '$src/lib/utils';
-	import { ValidationError } from '$src/lib/utils/error';
-	import constants from '$src/lib/constants';
-	import { goto } from '$app/navigation';
-	import { sessionStore } from '$src/stores';
+	import type { PageProps } from './$types';
 
 	type FormFields = {
 		firstName: string;
@@ -104,13 +103,15 @@
 	const onSubmit: EventHandler<SubmitEvent, HTMLFormElement> | null | undefined = async (event) => {
 		try {
 			event.preventDefault();
-
 			const form = event.target as HTMLFormElement | null;
 			if (!form) {
 				return;
 			}
 			if (!form.checkValidity()) {
 				isFormValid = false;
+				form
+					.querySelectorAll('input, textarea')
+					.forEach((e) => e.dispatchEvent(new Event('focusout', { bubbles: true })));
 				return;
 			}
 			const payload = Object.fromEntries(new FormData(form));

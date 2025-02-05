@@ -1,6 +1,6 @@
 import constants from '$lib/constants';
 import { sessionStore } from '$src/stores';
-import type { ResultType } from '$src/types';
+import { type ResultType } from '$src/types';
 import { get } from 'svelte/store';
 import { isRelativeUrl } from './url';
 
@@ -18,13 +18,14 @@ export async function fetchExtended<T>(
 
 	const defaultOptions: Partial<RequestInit & FetchOptions> = {
 		timeout: 1000 * 15,
-		credentials: 'include',
-		headers: {
-			...(options?.headers || {}),
-			Authorization: `Bearer ${get(sessionStore).sessionToken}`
-		}
+		credentials: 'include'
 	};
 	const mergedOptions = { ...defaultOptions, ...options };
+	mergedOptions.headers = {
+		...(mergedOptions.headers || {}),
+		Authorization: `Bearer ${get(sessionStore).sessionToken}`
+	};
+
 	const timeoutId = setTimeout(() => controller.abort(), mergedOptions.timeout);
 
 	try {
@@ -34,10 +35,6 @@ export async function fetchExtended<T>(
 			signal: controller.signal
 		});
 
-		if (!response.ok) {
-			throw new Error(`Request failed with status ${response.status}`);
-		}
-
 		const data = await response.json();
 		return { error: null, result: data as T };
 	} catch (error) {
@@ -46,18 +43,20 @@ export async function fetchExtended<T>(
 				return {
 					error: new Error(
 						'Request timed out. Please check your internet connection and try again.'
-					),
-					result: null
+					)
 				};
 			}
 		}
 		return {
 			error: new Error('An unexpected error occurred. Please try again.', {
 				cause: error
-			}),
-			result: null
+			})
 		};
 	} finally {
 		clearTimeout(timeoutId);
 	}
+}
+
+export function delayedPromise(delay: number = 1000 * 60 * 5) {
+	return new Promise((res) => setTimeout(res, delay));
 }

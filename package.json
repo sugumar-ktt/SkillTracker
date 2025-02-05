@@ -17,6 +17,7 @@
 		"@sveltejs/adapter-static": "^3.0.8",
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@types/prismjs": "^1.26.5",
 		"globals": "^15.14.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
@@ -36,6 +37,7 @@
 		"jquery": "^3.7.1",
 		"ldrs": "^1.0.2",
 		"lucide-svelte": "^0.474.0",
+		"prismjs": "^1.29.0",
 		"sass": "1.69.5",
 		"select2": "^4.1.0-rc.0",
 		"svelte-5-french-toast": "^2.0.4"

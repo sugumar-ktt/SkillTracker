@@ -1,17 +1,18 @@
 <script lang="ts">
+	import type { Choice } from '$src/types';
 	import { CircleCheckBig } from 'lucide-svelte';
 
 	type Props = {
 		isSelected: boolean;
 		value: string;
 		questionId: number;
-		onSelection: (choice: string) => void;
+		onSelection: () => void;
 	};
 
 	let { value, isSelected, onSelection }: Props = $props();
 
 	function handleSelection() {
-		onSelection(value);
+		onSelection();
 	}
 </script>
 
