@@ -6,7 +6,8 @@
 	import { ValidationError } from '$src/lib/utils/error';
 	import type { APIResponse, AssessmentAttemptDetail, ResultType } from '$src/types';
 	import dayjs from 'dayjs';
-	import { Clock, CodeXml, Loader2, Menu } from 'lucide-svelte';
+	import duration from 'dayjs/plugin/duration';
+	import { AlertTriangle, Clock, CodeXml, Loader2, Menu } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 	import { Spring } from 'svelte/motion';
@@ -14,11 +15,14 @@
 	import type { LayoutProps } from './$types';
 	import ProgressBar from './ProgressBar.svelte';
 	import QuestionNavigation from './QuestionNavigation.svelte';
-	import { sessionStore } from '$src/stores';
+
+	dayjs.extend(duration);
+	const AUTO_SUBMIT_THRESHOLD = 1000 * 60;
 
 	let { children, data }: LayoutProps = $props();
 
 	let assesmentAttempt = $derived(data.assessmentAttempt.data);
+	let assestmentEndTime = $derived(dayjs(assesmentAttempt.Assessment.endDate).valueOf());
 	let progress = $derived.by(() => {
 		const attemptDetails = assesmentAttempt.AssessmentAttemptDetails || [];
 		const attempted = attemptDetails.filter((a) => a.isAttempted).length;
@@ -27,9 +31,11 @@
 	let currentAttemptDetail: AssessmentAttemptDetail | undefined = $state();
 	let systemTime = new SvelteDate();
 	let testDuration = $state(0);
+	let assessmentExpiresIn = $derived(assestmentEndTime - systemTime.valueOf());
 
 	let isRightSidebarOpen = $state(true);
 	let isSubmissionLoading = $state(false);
+	let isAutoSubmitNotificationShown = $state(false);
 
 	const sidebarWidth = new Spring(18, {
 		stiffness: 0.125,
@@ -69,6 +75,8 @@
 				throw new ValidationError(result.error);
 			}
 
+			toast.success('Assessment submitted successfully');
+
 			await goto(`/assessments/result/${assesmentAttempt.id}`);
 		} catch (error) {
 			console.log(error);
@@ -79,6 +87,7 @@
 			}
 		} finally {
 			isSubmissionLoading = false;
+			isAutoSubmitNotificationShown = false;
 		}
 	}
 
@@ -86,6 +95,21 @@
 		const intervalId = setInterval(() => {
 			systemTime.setTime(Date.now());
 			testDuration = dayjs().diff(dayjs(assesmentAttempt.startTime), 'minutes');
+		}, 1000);
+		return () => {
+			clearInterval(intervalId);
+		};
+	});
+
+	$effect(() => {
+		const intervalId = setInterval(() => {
+			const currentTime = Date.now();
+			const expiryWindow = assestmentEndTime - currentTime;
+			if (expiryWindow <= AUTO_SUBMIT_THRESHOLD) {
+				isAutoSubmitNotificationShown = true;
+				setTimeout(completeAssesment, expiryWindow);
+				clearInterval(intervalId);
+			}
 		}, 1000);
 		return () => {
 			clearInterval(intervalId);
@@ -113,7 +137,30 @@
 	});
 </script>
 
+{#snippet AutosubmitNotification()}
+	<div class="auto-submit-notification">
+		<div class="card">
+			<div class="card-body">
+				<header class="hstack gap-2 mb-2 align-items-center">
+					<div class="alert-icon-wrapper">
+						<AlertTriangle size="24" />
+					</div>
+					<span class="fs-4 auto-submit-notification__title">Warning</span>
+				</header>
+				<span class="auto-submit-notification__content">
+					Your assessment will be auto-submitted in {dayjs
+						.duration(assessmentExpiresIn, 'milliseconds')
+						.format('mm:ss')}
+				</span>
+			</div>
+		</div>
+	</div>
+{/snippet}
+
 <Toaster />
+{#if isAutoSubmitNotificationShown}
+	<AutosubmitNotification />
+{/if}
 <div class="layout">
 	<nav class="nav card m-3">
 		<div class="card-body hstack w-100 h-100 py-3">
@@ -216,6 +263,7 @@
 	.main {
 		grid-area: main;
 		overflow-y: auto;
+		min-height: 100%;
 	}
 
 	.sidebar {
@@ -262,17 +310,44 @@
 	}
 
 	.info-icon {
-		aspect-ratio: 1/1;
-		border-radius: 0.6rem;
-		width: 2.5rem;
-		background-color: var(--color-primary-100);
-		color: var(--color-primary-600);
 		display: grid;
 		place-items: center;
+		aspect-ratio: 1/1;
+		border-radius: 0.6rem;
+		padding: 0.5rem;
+		width: fit-content;
+		background-color: var(--color-primary-100);
+		color: var(--color-primary-600);
 	}
 
-	.info-icon :global(svg) {
-		width: 1.6rem;
-		height: 1.6rem;
+	.alert-icon-wrapper {
+		display: grid;
+		place-items: center;
+		aspect-ratio: 1/1;
+		width: fit-content;
+		background-color: var(--color-warning-100);
+		color: var(--color-warning-500);
+		padding: 0.8rem;
+		border-radius: 50%;
+	}
+
+	.auto-submit-notification {
+		position: fixed;
+		bottom: 1rem;
+		right: 1rem;
+		z-index: 100;
+	}
+
+	.auto-submit-notification__title {
+		color: var(--color-warning-500);
+	}
+
+	.auto-submit-notification__content {
+		color: var(--color-warning-500);
+	}
+
+	.auto-submit-notification .card {
+		border: 1px solid var(--color-warning-200);
+		background-color: var(--color-warning-10);
 	}
 </style>

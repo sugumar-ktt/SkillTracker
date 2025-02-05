@@ -15,6 +15,7 @@
 	import { waveform } from 'ldrs';
 	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
+	import { crossfade } from 'svelte/transition';
 	import type { PageProps } from './$types';
 	import Choice from './Choice.svelte';
 	waveform.register();
@@ -31,6 +32,16 @@
 	};
 
 	let { data }: PageProps = $props();
+	const [send, receive] = crossfade({
+		duration: 300,
+		fallback(node) {
+			return {
+				duration: 150,
+				css: (t) => `opacity: ${t}`
+			};
+		}
+	});
+
 	let isPageLoading = $state(true);
 	let attemptDetail: AssessmentAttemptDetail | undefined = $state();
 	let selectedChoice: ChoiceType | undefined = $state();
@@ -132,74 +143,100 @@
 
 <Toaster />
 <section class="question vstack justify-content-between h-100">
-	{#if isPageLoading}
-		<div class="hstack justify-content-center mt-5" style="min-height: 30vh;">
-			<l-waveform size="48" stroke="4" speed="1" color="var(--color-primary-500)"></l-waveform>
-		</div>
-	{:else}
-		<div class="vstack">
-			<header class="header hstack justify-content-between mb-2">
-				<div class="fs-4 fw-medium">
-					{#if page.current}
-						Question {page.current?.index + 1}/{attempt.AssessmentAttemptDetails.length}
-					{:else}
-						Loading...
-					{/if}
+	<div class="question-container">
+		{#if isPageLoading}
+			<div class="question-view">
+				<div class="hstack justify-content-center mt-5" style="min-height: 30vh;">
+					<l-waveform size="48" stroke="4" speed="1" color="var(--color-primary-500)"></l-waveform>
 				</div>
-				<span class="text-primary">Choose the Answer</span>
-			</header>
-			{#if question?.snippet?.code}
-				<p class="mb-1">{question?.description}</p>
-				<div class="mb-4">
-					<Codeblock
-						code={question.snippet.code}
-						language={question.snippet.language as PrismLanguage}
-					/>
-				</div>
-			{:else}
-				<p class="mb-4">{question?.description}</p>
-			{/if}
-			<div class="vstack gap-3 mb-4">
-				{#each question?.choices || [] as choice (choice.id)}
-					<Choice
-						isSelected={choice.id == selectedChoice?.id}
-						questionId={1}
-						value={choice.text}
-						onSelection={() => handleSelection(choice)}
-					/>
-				{/each}
 			</div>
-		</div>
-		<div class="hstack justify-content-between mb-3">
-			{#if page?.prev?.questionId}
-				<a class="btn btn-secondary hstack gap-1" href={`./${page.prev.questionId}`}>
-					<ChevronLeft />
-					<span>Previous</span>
+		{:else}
+			{#key question?.id}
+				<div class="question-view" in:receive={{ key: 'question' }} out:send={{ key: 'question' }}>
+					<div class="vstack">
+						<header class="header hstack justify-content-between mb-2">
+							<div class="fs-4 fw-medium">
+								{#if page.current}
+									Question {page.current?.index + 1}/{attempt.AssessmentAttemptDetails.length}
+								{:else}
+									Loading...
+								{/if}
+							</div>
+							<span class="text-primary">Choose the Answer</span>
+						</header>
+						{#if question?.snippet?.code}
+							<p class="mb-1">{question?.description}</p>
+							<div class="mb-4">
+								<Codeblock
+									code={question.snippet.code}
+									language={question.snippet.language as PrismLanguage}
+								/>
+							</div>
+						{:else}
+							<p class="mb-4">{question?.description}</p>
+						{/if}
+						<div class="vstack gap-3 mb-4">
+							{#each question?.choices || [] as choice (choice.id)}
+								<Choice
+									isSelected={choice.id == selectedChoice?.id}
+									questionId={1}
+									value={choice.text}
+									onSelection={() => handleSelection(choice)}
+								/>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{/key}
+		{/if}
+	</div>
+
+	<!-- Navigation -->
+	<div class="hstack justify-content-between mb-3">
+		{#if page?.prev?.questionId}
+			<a class="btn btn-secondary hstack gap-1" href={`./${page.prev.questionId}`}>
+				<ChevronLeft />
+				<span>Previous</span>
+			</a>
+		{:else}
+			<button type="button" class="btn btn-secondary hstack gap-1" disabled>
+				<ChevronLeft />
+				<span>Previous</span>
+			</button>
+		{/if}
+
+		<div class="hstack gap-3">
+			<button type="button" class="btn btn-secondary" onmousedown={handleClear}>
+				<span>Clear</span>
+			</button>
+
+			{#if page?.next?.questionId}
+				<a class="btn btn-primary text-white hstack gap-1" href={`./${page.next.questionId}`}>
+					<span>Next</span>
+					<ChevronRight />
 				</a>
 			{:else}
-				<button type="button" class="btn btn-secondary hstack gap-1" disabled>
-					<ChevronLeft />
-					<span>Previous</span>
+				<button type="button" class="btn btn-primary text-white hstack gap-1" disabled>
+					<span>Next</span>
+					<ChevronRight />
 				</button>
 			{/if}
-
-			<div class="hstack gap-3">
-				<button type="button" class="btn btn-secondary" onmousedown={handleClear}>
-					<span>Clear</span>
-				</button>
-
-				{#if page?.next?.questionId}
-					<a class="btn btn-primary text-white hstack gap-1" href={`./${page.next.questionId}`}>
-						<span>Next</span>
-						<ChevronRight />
-					</a>
-				{:else}
-					<button type="button" class="btn btn-primary text-white hstack gap-1" disabled>
-						<span>Next</span>
-						<ChevronRight />
-					</button>
-				{/if}
-			</div>
 		</div>
-	{/if}
+	</div>
 </section>
+
+<style>
+	.question-container {
+		position: relative;
+		min-height: 60vh;
+		contain: layout style; /* Prevents layout shifts */
+	}
+
+	.question-view {
+		position: absolute;
+		width: 100%;
+		top: 0;
+		left: 0;
+		transition: opacity 0.2s ease; /* Fallback */
+	}
+</style>
