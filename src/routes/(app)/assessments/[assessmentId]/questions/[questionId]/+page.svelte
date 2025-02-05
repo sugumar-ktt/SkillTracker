@@ -138,7 +138,7 @@
 			<l-waveform size="48" stroke="4" speed="1" color="var(--color-primary-500)"></l-waveform>
 		</div>
 	{:else}
-		<div class="vstack" transition:fade={{ duration: 200 }}>
+		<div class="vstack">
 			<header class="header hstack justify-content-between mb-2">
 				<div class="fs-4 fw-medium">
 					{#if page.current}
