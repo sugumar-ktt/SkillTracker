@@ -152,11 +152,7 @@
 			</div>
 		{:else}
 			{#key question?.id}
-				<div
-					class="question-view assessment-mode"
-					in:receive={{ key: 'question' }}
-					out:send={{ key: 'question' }}
-				>
+				<div class="question-view" in:receive={{ key: 'question' }} out:send={{ key: 'question' }}>
 					<div class="vstack">
 						<header class="header hstack justify-content-between mb-2">
 							<div class="fs-4 fw-medium">
@@ -169,8 +165,8 @@
 							<span class="text-primary">Choose the Answer</span>
 						</header>
 						{#if question?.snippet?.code}
-							<p class="mb-1">{question?.description}</p>
-							<div class="mb-4">
+							<p class="mb-1 assessment-mode">{question?.description}</p>
+							<div class="mb-4 assessment-mode">
 								<Codeblock
 									code={question.snippet.code}
 									language={question.snippet.language as PrismLanguage}
