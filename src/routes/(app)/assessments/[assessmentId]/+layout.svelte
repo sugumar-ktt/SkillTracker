@@ -279,7 +279,7 @@
 	on:focus={handleWindowFocus}
 	on:blur={handleWindowBlur}
 />
-<div class="layout assessment-mode">
+<div class="layout">
 	<nav class="nav card m-3">
 		<div class="card-body hstack w-100 h-100 py-3">
 			<div class="nav-container hstack w-100 justify-content-center">
