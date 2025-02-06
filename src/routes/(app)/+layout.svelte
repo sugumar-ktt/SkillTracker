@@ -1,14 +1,18 @@
 <script lang="ts">
-	import { DevToolsBlocker } from '$src/lib/proctoring';
+	import { ProctoringGuard } from '$src/lib/proctoring';
 	import { onMount } from 'svelte';
 	import type { LayoutProps } from './$types';
+	const proctoringGuard = new ProctoringGuard({
+		blockConsole: true,
+		disableCopyPaste: true,
+		disableRightClick: true
+	});
 
 	let { children }: LayoutProps = $props();
 
 	onMount(() => {
-		// const devToolsBlocker = new DevToolsBlocker({ blockConsole: true });
-		// const cleanUp = devToolsBlocker.init();
-		// return cleanUp;
+		const cleanUp = proctoringGuard.init();
+		return cleanUp();
 	});
 </script>
 

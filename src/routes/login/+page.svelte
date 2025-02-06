@@ -332,6 +332,7 @@
 	.login {
 		min-height: 100vh;
 		overflow: hidden;
+		overflow-y: auto;
 	}
 
 	.login__showcase {

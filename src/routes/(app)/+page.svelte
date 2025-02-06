@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation';
 	import ErrorComponent from '$components/Error.svelte';
 	import constants from '$src/lib/constants';
-	import { FullscreenManager } from '$src/lib/proctoring';
 	import { fetchExtended } from '$src/lib/utils';
 	import { ValidationError } from '$src/lib/utils/error';
 	import {
@@ -19,7 +18,6 @@
 	import { onMount, type Component } from 'svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 	import type { PageProps } from './$types';
-	const fullScreenManager = new FullscreenManager({ lockOrientation: true });
 
 	waveform.register();
 	dayjs.extend(duration);
@@ -48,7 +46,6 @@
 			if (!result.success) {
 				throw new ValidationError(result.error);
 			}
-			await fullScreenManager.enable();
 			await goto(`/assessments/${result.data.AssessmentId}`);
 		} catch (error) {
 			console.log(error);

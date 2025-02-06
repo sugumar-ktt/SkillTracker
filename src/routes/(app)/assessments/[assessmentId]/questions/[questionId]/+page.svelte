@@ -152,7 +152,11 @@
 			</div>
 		{:else}
 			{#key question?.id}
-				<div class="question-view" in:receive={{ key: 'question' }} out:send={{ key: 'question' }}>
+				<div
+					class="question-view assessment-mode"
+					in:receive={{ key: 'question' }}
+					out:send={{ key: 'question' }}
+				>
 					<div class="vstack">
 						<header class="header hstack justify-content-between mb-2">
 							<div class="fs-4 fw-medium">
@@ -226,17 +230,30 @@
 </section>
 
 <style>
+	.assessment-mode {
+		user-select: none;
+		-webkit-user-select: none;
+		pointer-events: none;
+	}
+
+	.question {
+		height: 100%;
+	}
 	.question-container {
 		position: relative;
 		min-height: 60vh;
+		height: 100%;
 		contain: layout style; /* Prevents layout shifts */
+		margin-bottom: 1rem;
 	}
 
 	.question-view {
 		position: absolute;
 		width: 100%;
+		height: 100%;
 		top: 0;
 		left: 0;
 		transition: opacity 0.2s ease; /* Fallback */
+		overflow-y: auto;
 	}
 </style>

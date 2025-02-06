@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import constants from '$src/lib/constants';
+	import constants, { ProctoringEvents } from '$src/lib/constants';
 	import { fetchExtended } from '$src/lib/utils';
 	import { ValidationError } from '$src/lib/utils/error';
 	import type { APIResponse, AssessmentAttemptDetail, ResultType } from '$src/types';
@@ -15,9 +15,24 @@
 	import type { LayoutProps } from './$types';
 	import ProgressBar from './ProgressBar.svelte';
 	import QuestionNavigation from './QuestionNavigation.svelte';
+	import PermissionRequestModal from '../PermissionRequestModal.svelte';
+	import { FullscreenManager, ProctoringGuard } from '$src/lib/proctoring';
+	import AssesmentInstructionModal from '../AssesmentInstructionModal.svelte';
+	const proctoringGuard = new ProctoringGuard({
+		blockConsole: true,
+		disableCopyPaste: true,
+		disableRightClick: true
+	});
+
+	type SyncProctoringInformationPayload = {
+		isFullScreenAccessProvided: boolean;
+		isAssessmentConsentProvided: boolean;
+		event: ProctoringEvents;
+	};
 
 	dayjs.extend(duration);
 	const AUTO_SUBMIT_THRESHOLD = 1000 * 60;
+	const fullScreenManager = new FullscreenManager({ lockOrientation: true });
 
 	let { children, data }: LayoutProps = $props();
 
@@ -36,6 +51,9 @@
 	let isRightSidebarOpen = $state(true);
 	let isSubmissionLoading = $state(false);
 	let isAutoSubmitNotificationShown = $state(false);
+	let permissionRequestModal: PermissionRequestModal | undefined = $state();
+	let assessmentInstructionModal: AssesmentInstructionModal | undefined = $state();
+	let isInFullScreen = $state(fullScreenManager.check());
 
 	const sidebarWidth = new Spring(18, {
 		stiffness: 0.125,
@@ -47,11 +65,11 @@
 		sidebarWidth.target = isRightSidebarOpen ? 18 : 0;
 	}
 
-	async function completeAssesment() {
+	async function completeAssesment(completionTime = dayjs()) {
 		try {
 			isSubmissionLoading = true;
 			const payload = {
-				completionTime: dayjs().toISOString(),
+				completionTime: completionTime.toISOString(),
 				attemptId: assesmentAttempt.id
 			};
 
@@ -91,6 +109,80 @@
 		}
 	}
 
+	async function syncProctoring(proctoringInformation: Partial<SyncProctoringInformationPayload>) {
+		try {
+			const payload = proctoringInformation || {};
+			payload.isFullScreenAccessProvided = fullScreenManager.check();
+
+			const { error, result } = await fetchExtended<APIResponse<boolean>>(
+				fetch,
+				`${constants.API_URL}/api/assessments/attempts/${assesmentAttempt.id}/proctoring`,
+				{
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(payload)
+				}
+			);
+
+			if (error) {
+				throw new Error('Network error while updating procotoring information');
+			}
+
+			if (!result.success) {
+				throw new ValidationError(result.error);
+			}
+		} catch (error) {
+			console.log('Error while updating proctoring information', error);
+		}
+	}
+
+	async function handlePermissionChange(isPermissionProvided: boolean) {
+		if (isPermissionProvided) {
+			fullScreenManager.enable();
+			syncProctoring({ isAssessmentConsentProvided: isPermissionProvided });
+			assessmentInstructionModal?.show();
+		} else {
+			await syncProctoring({ isAssessmentConsentProvided: isPermissionProvided });
+			await completeAssesment();
+		}
+	}
+
+	async function handleInstructionAck(isAcknowledged: boolean) {
+		if (isAcknowledged) {
+			syncProctoring({ isAssessmentConsentProvided: isAcknowledged });
+			assessmentInstructionModal?.hide();
+		} else {
+			await syncProctoring({ isAssessmentConsentProvided: isAcknowledged });
+			await completeAssesment();
+		}
+	}
+
+	function handleFullScreenStatusChange(isFullScreen: boolean) {
+		isInFullScreen = isFullScreen;
+		syncProctoring({
+			isFullScreenAccessProvided: isInFullScreen,
+			event: isInFullScreen == false ? ProctoringEvents.FullScreenExit : undefined
+		});
+	}
+
+	function handleVisibilityChange() {
+		if (document.visibilityState == 'hidden') {
+			syncProctoring({ event: ProctoringEvents.VisibilityExit });
+		} else if (document.visibilityState == 'visible') {
+			syncProctoring({ event: ProctoringEvents.VisibilityEnter });
+		}
+	}
+
+	function handleWindowFocus() {
+		syncProctoring({ event: ProctoringEvents.VisibilityEnter });
+	}
+
+	function handleWindowBlur() {
+		syncProctoring({ event: ProctoringEvents.VisibilityExit });
+	}
+
 	$effect(() => {
 		const intervalId = setInterval(() => {
 			systemTime.setTime(Date.now());
@@ -107,7 +199,9 @@
 			const expiryWindow = assestmentEndTime - currentTime;
 			if (expiryWindow <= AUTO_SUBMIT_THRESHOLD) {
 				isAutoSubmitNotificationShown = true;
-				setTimeout(completeAssesment, expiryWindow);
+				setTimeout(() => {
+					completeAssesment(dayjs(assestmentEndTime));
+				}, expiryWindow);
 				clearInterval(intervalId);
 			}
 		}, 1000);
@@ -116,10 +210,26 @@
 		};
 	});
 
+	$effect(() => {
+		if (!isInFullScreen) {
+			permissionRequestModal?.show();
+		} else {
+			permissionRequestModal?.hide();
+		}
+	});
+
 	onMount(() => {
 		if (!data.assessmentAttempt.success) {
 			toast.error('Error while retrieving test progress. Please try again later');
 		}
+		const fullScreenGuardCleanup = fullScreenManager.onChange(handleFullScreenStatusChange);
+		const proctoringCleanup = proctoringGuard.init();
+		return () => {
+			fullScreenGuardCleanup();
+			proctoringCleanup();
+			permissionRequestModal?.hide();
+			assessmentInstructionModal?.hide();
+		};
 	});
 
 	afterNavigate(() => {
@@ -161,7 +271,15 @@
 {#if isAutoSubmitNotificationShown}
 	<AutosubmitNotification />
 {/if}
-<div class="layout">
+
+<PermissionRequestModal onAction={handlePermissionChange} bind:this={permissionRequestModal} />
+<AssesmentInstructionModal onAction={handleInstructionAck} bind:this={assessmentInstructionModal} />
+<svelte:window
+	on:visibilitychange={handleVisibilityChange}
+	on:focus={handleWindowFocus}
+	on:blur={handleWindowBlur}
+/>
+<div class="layout assessment-mode">
 	<nav class="nav card m-3">
 		<div class="card-body hstack w-100 h-100 py-3">
 			<div class="nav-container hstack w-100 justify-content-center">
@@ -199,7 +317,7 @@
 								type="button"
 								class="btn btn-primary text-white hstack gap-2"
 								style="align-self: center;"
-								onmousedown={completeAssesment}
+								onmousedown={() => completeAssesment()}
 							>
 								{#if isSubmissionLoading}
 									<span class="spinner"><Loader2 /></span>

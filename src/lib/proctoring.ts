@@ -1,40 +1,87 @@
 import { goto } from '$app/navigation';
 
-export interface DevToolsBlockerConfig {
+export interface ProctoringGuardConfig {
 	blockConsole?: boolean;
+	disableRightClick?: boolean;
+	disableCopyPaste?: boolean;
 	blockedShortcuts?: Set<string>;
 }
 
-export class DevToolsBlocker {
-	private defaultShortcuts = new Set(['F12', 'I', 'J', 'C']);
+export class ProctoringGuard {
+	private defaultShortcuts = new Set(['F12', 'I', 'J', 'C', 'F5', 'F11']);
 	private blockedKeys: Set<string>;
-	private blockConsole: boolean;
+	private config: ProctoringGuardConfig;
 
-	constructor(config?: DevToolsBlockerConfig) {
+	constructor(config?: ProctoringGuardConfig) {
+		this.config = {
+			blockConsole: true,
+			disableRightClick: true,
+			disableCopyPaste: true,
+			...config
+		};
 		this.blockedKeys = config?.blockedShortcuts || this.defaultShortcuts;
-		this.blockConsole = config?.blockConsole ?? true;
 	}
 
 	init() {
+		const cleanupFns: (() => void)[] = [];
+
+		// Keyboard shortcuts blocking
 		const keyHandler = (e: KeyboardEvent) => {
 			if (this.blockedKeys.has(e.key) || (e.ctrlKey && e.shiftKey && this.blockedKeys.has(e.key))) {
 				e.preventDefault();
 			}
 		};
-
 		window.addEventListener('keydown', keyHandler);
+		cleanupFns.push(() => window.removeEventListener('keydown', keyHandler));
 
-		if (this.blockConsole) {
-			Object.defineProperty(window, 'console', {
-				value: Object.create(null),
-				writable: false
+		// Console blocking
+		if (this.config.blockConsole) {
+			// Check if the console exists.
+			if (typeof window.console !== 'undefined') {
+				// Override each method that is a function.
+				for (const key in window.console) {
+					const keyType = key as keyof typeof window.console;
+					if (typeof window.console[keyType] === 'function') {
+						try {
+							//@ts-ignore
+							window.console[keyType] = () => {};
+						} catch (error) {
+							// In some browsers, some properties may be non-writable.
+							// You can log this error elsewhere if needed.
+						}
+					}
+				}
+			}
+		}
+
+		// Right-click prevention
+		if (this.config.disableRightClick) {
+			const contextMenuHandler = (e: MouseEvent) => e.preventDefault();
+			document.addEventListener('contextmenu', contextMenuHandler);
+			cleanupFns.push(() => document.removeEventListener('contextmenu', contextMenuHandler));
+		}
+
+		// Copy/paste prevention
+		if (this.config.disableCopyPaste) {
+			const copyHandler = (e: ClipboardEvent) => {
+				e.preventDefault();
+				e.clipboardData?.setData('text/plain', '');
+			};
+
+			document.addEventListener('copy', copyHandler);
+			document.addEventListener('cut', copyHandler);
+			document.addEventListener('paste', copyHandler);
+
+			cleanupFns.push(() => {
+				document.removeEventListener('copy', copyHandler);
+				document.removeEventListener('cut', copyHandler);
+				document.removeEventListener('paste', copyHandler);
 			});
 		}
 
-		return () => window.removeEventListener('keydown', keyHandler);
+		return () => cleanupFns.forEach((fn) => fn());
 	}
 }
-
 type OrientationLockType =
 	| 'any'
 	| 'natural'
@@ -96,8 +143,12 @@ export class FullscreenManager {
 		}
 	}
 
+	check(): boolean {
+		return Boolean(document.fullscreenElement);
+	}
+
 	onChange(callback: (isFullscreen: boolean) => void): () => void {
-		const handler = () => callback(!!document.fullscreenElement);
+		const handler = () => callback(Boolean(document.fullscreenElement));
 		document.addEventListener('fullscreenchange', handler);
 		return () => document.removeEventListener('fullscreenchange', handler);
 	}
@@ -135,30 +186,5 @@ export class NavigationGuard {
 			window.removeEventListener('beforeunload', beforeUnload);
 			document.removeEventListener('visibilitychange', visibilityChange);
 		};
-	}
-}
-
-export class AssessmentProctor {
-	private devToolsBlocker: DevToolsBlocker;
-	private fullscreenManager: FullscreenManager;
-	private navigationGuard: NavigationGuard;
-
-	constructor(config?: {
-		devTools?: DevToolsBlockerConfig;
-		fullscreen?: FullscreenOptions;
-		redirectUrl?: string;
-	}) {
-		this.devToolsBlocker = new DevToolsBlocker(config?.devTools);
-		this.fullscreenManager = new FullscreenManager(config?.fullscreen);
-		this.navigationGuard = new NavigationGuard(config?.redirectUrl);
-	}
-
-	async startAssessment() {
-		const cleanup = [this.devToolsBlocker.init(), this.navigationGuard.start()];
-
-		const success = await this.fullscreenManager.enable();
-		if (!success) throw new Error('Fullscreen failed');
-
-		return () => cleanup.forEach((fn) => fn());
 	}
 }
