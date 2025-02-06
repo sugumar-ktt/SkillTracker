@@ -53,7 +53,6 @@ interface FullscreenOptions {
 export class FullscreenManager {
 	private orientationLock: boolean;
 	private orientationType: OrientationLockType;
-	private prevFullScreenExitPreventer: ((e: KeyboardEvent) => void) | undefined;
 
 	private screenOrientation?: ScreenOrientation & {
 		lock: (orientation: OrientationLockType) => void;
@@ -78,16 +77,7 @@ export class FullscreenManager {
 					console.warn('Orientation lock failed:', lockError);
 				}
 			}
-			if (this.prevFullScreenExitPreventer) {
-				window.removeEventListener('keydown', this.prevFullScreenExitPreventer);
-			}
-			const fullScreenExitPreventer = (e: KeyboardEvent) => {
-				if (e.key == 'Escape') {
-					e.preventDefault();
-				}
-			};
-			window.addEventListener('keydown', fullScreenExitPreventer);
-			this.prevFullScreenExitPreventer = fullScreenExitPreventer;
+
 			return true;
 		} catch (error) {
 			console.error('Fullscreen failed:', error);
