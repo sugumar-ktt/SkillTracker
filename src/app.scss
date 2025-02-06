@@ -68,6 +68,7 @@ hr {
 	border-color: var(--color-neutral-700) !important;
 }
 
+/* Utilities */
 .spinner {
 	height: 100%;
 	width: auto;
@@ -148,4 +149,11 @@ form[novalidate] .form-select:user-invalid {
 	to {
 		transform: rotate(360deg);
 	}
+}
+
+/* Global styles */
+.assessment-mode {
+	user-select: none;
+	-webkit-user-select: none;
+	pointer-events: none;
 }

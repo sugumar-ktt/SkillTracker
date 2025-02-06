@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Choice } from '$src/types';
 	import { CircleCheckBig } from 'lucide-svelte';
 
 	type Props = {

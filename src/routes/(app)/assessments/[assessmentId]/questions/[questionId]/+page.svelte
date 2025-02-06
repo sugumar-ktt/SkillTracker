@@ -173,7 +173,7 @@
 								/>
 							</div>
 						{:else}
-							<p class="mb-4">{question?.description}</p>
+							<p class="mb-4 assessment-mode">{question?.description}</p>
 						{/if}
 						<div class="vstack gap-3 mb-4">
 							{#each question?.choices || [] as choice (choice.id)}
@@ -226,12 +226,6 @@
 </section>
 
 <style>
-	.assessment-mode {
-		user-select: none;
-		-webkit-user-select: none;
-		pointer-events: none;
-	}
-
 	.question {
 		height: 100%;
 	}
