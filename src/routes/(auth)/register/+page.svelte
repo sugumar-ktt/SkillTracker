@@ -223,7 +223,7 @@
 		</div>
 		<footer class="hstack gap-1 justify-content-center">
 			<span class="text-body-secondary">Already have an account?</span>
-			<a href="/register" class="text-decoration-none">Login here</a>
+			<a href="/login" class="text-decoration-none">Login here</a>
 		</footer>
 	</form>
 </div>

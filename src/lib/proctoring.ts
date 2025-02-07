@@ -7,6 +7,13 @@ export interface ProctoringGuardConfig {
 	blockedShortcuts?: Set<string>;
 }
 
+export interface ProctoringGuardConfig {
+	blockConsole?: boolean;
+	disableRightClick?: boolean;
+	disableCopyPaste?: boolean;
+	blockedShortcuts?: Set<string>;
+}
+
 export class ProctoringGuard {
 	private defaultShortcuts = new Set(['F12', 'I', 'J', 'C', 'F5', 'F11']);
 	private blockedKeys: Set<string>;
@@ -25,20 +32,27 @@ export class ProctoringGuard {
 	init() {
 		const cleanupFns: (() => void)[] = [];
 
-		// Keyboard shortcuts blocking
+		// Keyboard shortcuts blocking, now including Fn key detection
 		const keyHandler = (e: KeyboardEvent) => {
+			// Block if the key pressed is the Fn key,
+			// or if the Fn modifier is active.
+			if (e.key === 'Fn' || (e.getModifierState && e.getModifierState('Fn'))) {
+				e.preventDefault();
+				return;
+			}
+
+			// Block other specified shortcuts
 			if (this.blockedKeys.has(e.key) || (e.ctrlKey && e.shiftKey && this.blockedKeys.has(e.key))) {
 				e.preventDefault();
 			}
 		};
+
 		window.addEventListener('keydown', keyHandler);
 		cleanupFns.push(() => window.removeEventListener('keydown', keyHandler));
 
 		// Console blocking
 		if (this.config.blockConsole) {
-			// Check if the console exists.
 			if (typeof window.console !== 'undefined') {
-				// Override each method that is a function.
 				for (const key in window.console) {
 					const keyType = key as keyof typeof window.console;
 					if (typeof window.console[keyType] === 'function') {
@@ -46,8 +60,7 @@ export class ProctoringGuard {
 							//@ts-ignore
 							window.console[keyType] = () => {};
 						} catch (error) {
-							// In some browsers, some properties may be non-writable.
-							// You can log this error elsewhere if needed.
+							// Some properties may be non-writable in certain browsers.
 						}
 					}
 				}
@@ -82,6 +95,7 @@ export class ProctoringGuard {
 		return () => cleanupFns.forEach((fn) => fn());
 	}
 }
+
 type OrientationLockType =
 	| 'any'
 	| 'natural'

@@ -32,7 +32,8 @@
 			return;
 		}
 		modalInstance = new Modal(modalRef, {
-			backdrop: 'static'
+			backdrop: 'static',
+			keyboard: false
 		});
 	});
 </script>

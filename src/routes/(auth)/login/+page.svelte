@@ -103,7 +103,7 @@
 				<div class="invalid-feedback">{formState.userName}</div>
 			{/if}
 		</div>
-		<div class="mb-5">
+		<div class="mb-4">
 			<label class="form-label" for="password">Password</label>
 			<input
 				type="password"

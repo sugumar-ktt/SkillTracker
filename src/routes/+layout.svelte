@@ -3,10 +3,24 @@
 	import '$src/app.scss';
 	import { ping } from 'ldrs';
 	import type { LayoutProps } from './$types';
+	import { ProctoringGuard } from '$src/lib/proctoring';
+	import { onMount } from 'svelte';
 	ping.register();
+	const proctoringGuard = new ProctoringGuard({
+		blockConsole: true,
+		disableCopyPaste: false,
+		disableRightClick: false
+	});
 
 	let { children }: LayoutProps = $props();
 	let isLoading = $derived(Boolean(navigating?.to && navigating?.type != 'goto'));
+
+	onMount(() => {
+		const cleanup = proctoringGuard.init();
+		return () => {
+			cleanup();
+		};
+	});
 </script>
 
 {#if isLoading}

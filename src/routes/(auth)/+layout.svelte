@@ -122,7 +122,7 @@
 			</section>
 			<section class="right-section col h-100">
 				<div class="content-wrapper vstack mx-auto position-relative">
-					<div class="row gx-5 gy-3">
+					<div class="row gx-5 gy-3 mb-4">
 						<div class="col">
 							<img
 								src={kttHorizontalLogo}
@@ -139,7 +139,7 @@
 						</div>
 					</div>
 
-					<div class="position-absolute w-100 top-50 translate-middle-y mt-3">
+					<div class="vstack flex-grow-1 overflow-y-auto p-2 content-container">
 						{@render children()}
 					</div>
 				</div>
@@ -152,8 +152,11 @@
 	.layout {
 		height: 100vh;
 		overflow: hidden;
-		overflow-y: auto;
 		padding: 1rem;
+	}
+
+	.right-section {
+		overflow-y: auto;
 	}
 
 	.showcase-section {
@@ -185,6 +188,10 @@
 		aspect-ratio: 2/0.58;
 		object-fit: contain;
 		width: 100%;
+	}
+
+	.content-container {
+		scrollbar-width: thin;
 	}
 
 	.content-brand--left {
