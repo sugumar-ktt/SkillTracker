@@ -119,13 +119,13 @@ hr {
 }
 
 /* Validation Feedback */
-form[novalidate] .form-control:user-valid,
-form[novalidate] .form-select:user-valid {
+form[novalidate]:not(.feedback-none) .form-control:user-valid,
+form[novalidate]:not(.feedback-none) .form-select:user-valid {
 	@extend .is-valid;
 }
 
-form[novalidate] .form-control:user-invalid,
-form[novalidate] .form-select:user-invalid {
+form[novalidate]:not(.feedback-none) .form-control:user-invalid,
+form[novalidate]:not(.feedback-none) .form-select:user-invalid {
 	@extend .is-invalid;
 }
 
