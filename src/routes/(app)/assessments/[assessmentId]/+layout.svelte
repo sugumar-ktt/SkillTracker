@@ -4,7 +4,12 @@
 	import constants, { ProctoringEvents } from '$src/lib/constants';
 	import { fetchExtended } from '$src/lib/utils';
 	import { ValidationError } from '$src/lib/utils/error';
-	import type { APIResponse, AssessmentAttemptDetail, ResultType } from '$src/types';
+	import type {
+		APIResponse,
+		AssessmentAttempt,
+		AssessmentAttemptDetail,
+		ResultType
+	} from '$src/types';
 	import dayjs from 'dayjs';
 	import duration from 'dayjs/plugin/duration';
 	import { AlertTriangle, Clock, CodeXml, Loader2, Menu } from 'lucide-svelte';
@@ -18,6 +23,7 @@
 	import PermissionRequestModal from '../PermissionRequestModal.svelte';
 	import { FullscreenManager, ProctoringGuard } from '$src/lib/proctoring';
 	import AssesmentInstructionModal from '../AssesmentInstructionModal.svelte';
+	import AssesmentConfirmationModal from '../AssesmentConfirmationModal.svelte';
 	const proctoringGuard = new ProctoringGuard({
 		blockConsole: true,
 		disableCopyPaste: true,
@@ -53,6 +59,7 @@
 	let isAutoSubmitNotificationShown = $state(false);
 	let permissionRequestModal: PermissionRequestModal | undefined = $state();
 	let assessmentInstructionModal: AssesmentInstructionModal | undefined = $state();
+	let assessmentConfirmationModal: AssesmentConfirmationModal | undefined = $state();
 	let isInFullScreen = $state(fullScreenManager.check());
 
 	const sidebarWidth = new Spring(18, {
@@ -114,7 +121,7 @@
 			const payload = proctoringInformation || {};
 			payload.isFullScreenAccessProvided = fullScreenManager.check();
 
-			const { error, result } = await fetchExtended<APIResponse<boolean>>(
+			const { error, result } = await fetchExtended<APIResponse<AssessmentAttempt>>(
 				fetch,
 				`${constants.API_URL}/api/assessments/attempts/${assesmentAttempt.id}/proctoring`,
 				{
@@ -137,6 +144,13 @@
 			console.log('Error while updating proctoring information', error);
 		}
 	}
+	async function handleAssessmentSubmit() {
+		const isConfirmed = await assessmentConfirmationModal?.confirm();
+		if (!isConfirmed) {
+			return;
+		}
+		await completeAssesment();
+	}
 
 	async function handlePermissionChange(isPermissionProvided: boolean) {
 		if (isPermissionProvided) {
@@ -145,7 +159,6 @@
 			assessmentInstructionModal?.show();
 		} else {
 			await syncProctoring({ isAssessmentConsentProvided: isPermissionProvided });
-			await completeAssesment();
 		}
 	}
 
@@ -155,16 +168,17 @@
 			assessmentInstructionModal?.hide();
 		} else {
 			await syncProctoring({ isAssessmentConsentProvided: isAcknowledged });
-			await completeAssesment();
 		}
 	}
 
 	function handleFullScreenStatusChange(isFullScreen: boolean) {
+		if (isFullScreen == false) {
+			syncProctoring({
+				isFullScreenAccessProvided: isInFullScreen,
+				event: ProctoringEvents.FullScreenExit
+			});
+		}
 		isInFullScreen = isFullScreen;
-		syncProctoring({
-			isFullScreenAccessProvided: isInFullScreen,
-			event: isInFullScreen == false ? ProctoringEvents.FullScreenExit : undefined
-		});
 	}
 
 	function handleVisibilityChange() {
@@ -229,6 +243,7 @@
 			proctoringCleanup();
 			permissionRequestModal?.hide();
 			assessmentInstructionModal?.hide();
+			assessmentConfirmationModal?.hide();
 		};
 	});
 
@@ -274,6 +289,7 @@
 
 <PermissionRequestModal onAction={handlePermissionChange} bind:this={permissionRequestModal} />
 <AssesmentInstructionModal onAction={handleInstructionAck} bind:this={assessmentInstructionModal} />
+<AssesmentConfirmationModal bind:this={assessmentConfirmationModal} />
 <svelte:window
 	on:visibilitychange={handleVisibilityChange}
 	on:focus={handleWindowFocus}
@@ -301,13 +317,13 @@
 					</div>
 					<div class="col-lg">
 						<div class="hstack gap-3">
-							<span class="info-icon">
+							<!-- <span class="info-icon">
 								<Clock />
 							</span>
 							<div class="vstack">
 								<span class="text-body-secondary">Duration</span>
 								<span class="text-body-emphasis fw-medium">{testDuration} Minutes</span>
-							</div>
+							</div> -->
 						</div>
 					</div>
 					<div class="col-lg-5">
@@ -317,7 +333,7 @@
 								type="button"
 								class="btn btn-primary text-white hstack gap-2"
 								style="align-self: center;"
-								onmousedown={() => completeAssesment()}
+								onmousedown={handleAssessmentSubmit}
 							>
 								{#if isSubmissionLoading}
 									<span class="spinner"><Loader2 /></span>

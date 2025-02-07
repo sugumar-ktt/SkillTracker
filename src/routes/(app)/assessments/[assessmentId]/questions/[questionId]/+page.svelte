@@ -165,15 +165,15 @@
 							<span class="text-primary">Choose the Answer</span>
 						</header>
 						{#if question?.snippet?.code}
-							<p class="mb-1 assessment-mode">{question?.description}</p>
-							<div class="mb-4 assessment-mode">
+							<p class="mb-1 assessment-mode question-description">{question?.description}</p>
+							<div class="mb-4">
 								<Codeblock
 									code={question.snippet.code}
 									language={question.snippet.language as PrismLanguage}
 								/>
 							</div>
 						{:else}
-							<p class="mb-4 assessment-mode">{question?.description}</p>
+							<p class="mb-4 assessment-mode question-description">{question?.description}</p>
 						{/if}
 						<div class="vstack gap-3 mb-4">
 							{#each question?.choices || [] as choice (choice.id)}
@@ -245,5 +245,9 @@
 		left: 0;
 		transition: opacity 0.2s ease; /* Fallback */
 		overflow-y: auto;
+	}
+
+	.question-description {
+		white-space: pre-wrap;
 	}
 </style>

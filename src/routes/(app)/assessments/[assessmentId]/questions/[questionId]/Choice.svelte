@@ -26,7 +26,7 @@
 					id="{value}-id"
 					checked={isSelected}
 				/>
-				<label class="form-check-label" for="{value}-id">{value}</label>
+				<label class="form-check-label choice-description" for="{value}-id">{value}</label>
 			</div>
 			{#if isSelected}
 				<span style="color: var(--color-primary-600)">
@@ -51,5 +51,9 @@
 	.choice:focus-visible {
 		outline: none;
 		box-shadow: 0 0 0 0.25rem var(--color-primary-300);
+	}
+
+	.choice-description {
+		white-space: pre-wrap;
 	}
 </style>

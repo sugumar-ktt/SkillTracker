@@ -14,12 +14,14 @@ export type APIResponse<T> =
 			status: number;
 			data: T;
 			error?: null;
+			metadata?: Record<string, any>;
 	  }
 	| {
 			success: false;
 			status: number;
 			error: string;
 			data?: null;
+			metadata?: Record<string, any>;
 	  };
 
 export type Department = {
@@ -46,6 +48,7 @@ export type AssessmentAttempt = {
 	startTime: string;
 	endTime: string;
 	status: 'Draft' | 'InProgress' | 'Completed';
+	proctoring?: ProctoringInformation;
 	SessionId: number;
 	CandidateId: number;
 	AssessmentId: number;
@@ -100,4 +103,11 @@ export type Submission = {
 	sessionId: number;
 	CandidateId: number;
 	AssessmentAttemptId: number;
+};
+
+export type ProctoringInformation = {
+	isFullScreenAccessProvided: boolean;
+	isAssessmentConsentProvided: boolean;
+	fullScreenExits: number;
+	visibilityChanges: number;
 };

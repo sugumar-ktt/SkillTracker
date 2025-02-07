@@ -14,7 +14,7 @@
 	import duration from 'dayjs/plugin/duration';
 	import relativeTime from 'dayjs/plugin/relativeTime';
 	import { waveform } from 'ldrs';
-	import { CirclePlay, Clock, FileText, Loader2, Target, User } from 'lucide-svelte';
+	import { CirclePlay, Clock, FileText, Loader2, LogOut, Target, User } from 'lucide-svelte';
 	import { onMount, type Component } from 'svelte';
 	import toast, { Toaster } from 'svelte-5-french-toast';
 	import type { PageProps } from './$types';
@@ -46,6 +46,7 @@
 			if (!result.success) {
 				throw new ValidationError(result.error);
 			}
+
 			await goto(`/assessments/${result.data.AssessmentId}`);
 		} catch (error) {
 			console.log(error);
@@ -109,7 +110,7 @@
 				<div class="card-body p-0">
 					<header class="assessment_header p-3 py-4">
 						<h2 class="mb-3 fw-semibold">{assessment.name}</h2>
-						<p class="fs-5">Developer Assessment</p>
+						<p class="fs-5">Skill Tracker</p>
 					</header>
 					<div class="assessment_content p-4">
 						<div class="row gy-4 mb-4">
@@ -133,11 +134,20 @@
 								)}
 							</div>
 							<div class="col-md-4">
-								{@render AssessmentInfoItem(
-									Clock,
-									'Start Time',
-									dayjs(assessment.startDate).format('MMM DD[, 	] hh:m A')
-								)}
+								<button
+									type="button"
+									class="btn btn-primary text-white hstack gap-2 w-100 justify-content-center h-100 fs-3 fw-medium"
+									style="border-radius: 0.8rem;"
+									onmousedown={() => handleAssesmentStart(assessment.id)}
+								>
+									{#if isStartTestBtnLoading}
+										<span class="spinner"><Loader2 /></span>
+										<span>Starting...</span>
+									{:else}
+										<CirclePlay size="1.2em" />
+										<span>Start</span>
+									{/if}
+								</button>
 							</div>
 							<div class="col-md-4">
 								{@render AssessmentInfoItem(
@@ -149,34 +159,25 @@
 								)}
 							</div>
 						</div>
-						<hr />
-						<div class="hstack justify-content-center mb-3">
-							<button
-								type="button"
-								class="btn btn-primary text-white hstack gap-2"
-								onmousedown={() => handleAssesmentStart(assessment.id)}
-							>
-								{#if isStartTestBtnLoading}
-									<span class="spinner"><Loader2 /></span>
-									<span>Starting...</span>
-								{:else}
-									<CirclePlay />
-									<span>Start Test</span>
-								{/if}
-							</button>
-						</div>
-						<p class="mt-2 text-body-tertiary text-center">
-							Test Ends On: {dayjs(assessment.endDate).format('MMMM DD[, 	] hh:m A')}
-						</p>
 					</div>
 				</div>
 			</div>
 		{:else}
 			<ErrorComponent
-				title="All Clear: Your Assesssment-Free Day is Here!"
-				description="It looks like you don't have any assessments waiting for you at the moment. Check back later for new challenges, or reach out if you think this is a mistake."
+				title="Congratulations!<br>You have completed your Assessment for the day"
+				description=""
 				icon="happy"
-			/>
+				isActionShown={false}
+			>
+				{#snippet Action()}
+					<div class="hstack justify-content-center">
+						<a href="/logout" class="btn btn-primary hstack gap-2">
+							<LogOut />
+							<span>Log out</span>
+						</a>
+					</div>
+				{/snippet}
+			</ErrorComponent>
 		{/if}
 	{/await}
 </section>

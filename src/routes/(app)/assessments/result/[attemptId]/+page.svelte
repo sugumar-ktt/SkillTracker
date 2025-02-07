@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CircleCheckBig, Clock } from 'lucide-svelte';
+	import { CircleCheckBig, Clock, LogOut } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { waveform } from 'ldrs';
 	import { type Submission } from '$src/types';
@@ -30,7 +30,7 @@
 						<p class="text-body-secondary">
 							Thank you for completing the assessment. Your submission has been recorded.
 						</p>
-						<div class="vstack gap-3">
+						<div class="vstack gap-3 mb-5">
 							<div class="result__info-item">
 								<span class="text-body-emphasis fw-medium">Attempted Questions</span>
 								<span>{assessmentResult.attemptedQuestions}</span>
@@ -44,6 +44,12 @@
 									</span>
 								</div>
 							</div>
+						</div>
+						<div class="hstack justify-content-center">
+							<a href="/logout" class="btn btn-primary hstack gap-2">
+								<LogOut />
+								<span>Log out</span>
+							</a>
 						</div>
 					</div>
 				</div>

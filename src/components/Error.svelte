@@ -1,12 +1,15 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte';
 	import { ArrowLeft } from 'lucide-svelte';
 	type Props = {
 		title: string;
 		description: string;
 		icon?: 'happy' | 'sad';
+		isActionShown?: boolean;
+		Action?: Snippet;
 	};
 
-	let { description, title, icon = 'sad' }: Props = $props();
+	let { description, title, icon = 'sad', isActionShown = true, Action }: Props = $props();
 </script>
 
 {#snippet HappyFace()}
@@ -68,14 +71,18 @@
 				{@render SadFace()}
 			{/if}
 		</div>
-		<h1 class="fs-1 mb-3">{title}</h1>
+		<h1 class="fs-1 mb-3 title">{@html title}</h1>
 		<p class="mb-4">
 			{description}
 		</p>
-		<a href="/" class="btn btn-primary hstack justify-content-center gap-2 text-bg-primary">
-			<ArrowLeft width="4" height="4" />
-			<span>Return to Home</span>
-		</a>
+		{#if Action}
+			{@render Action()}
+		{:else if isActionShown}
+			<a href="/" class="btn btn-primary hstack justify-content-center gap-2 text-bg-primary">
+				<ArrowLeft width="4" height="4" />
+				<span>Return to Home</span>
+			</a>
+		{/if}
 	</div>
 </div>
 
@@ -88,7 +95,7 @@
 	}
 
 	.error__container {
-		max-width: var(--container-md);
+		max-width: var(--container-xl);
 		width: 100%;
 	}
 

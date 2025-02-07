@@ -12,11 +12,14 @@ export interface ProctoringGuardConfig {
 	disableRightClick?: boolean;
 	disableCopyPaste?: boolean;
 	blockedShortcuts?: Set<string>;
+	blockedModifierShortcuts?: Set<string>;
 }
 
 export class ProctoringGuard {
-	private defaultShortcuts = new Set(['F12', 'I', 'J', 'C', 'F5', 'F11']);
+	private defaultShortcuts = new Set(['F12', 'F5', 'F11']);
+	private defaultShortcutsWithModifiers = new Set(['I', 'J', 'C']);
 	private blockedKeys: Set<string>;
+	private blockedKeysWithModifiers: Set<string>;
 	private config: ProctoringGuardConfig;
 
 	constructor(config?: ProctoringGuardConfig) {
@@ -27,6 +30,8 @@ export class ProctoringGuard {
 			...config
 		};
 		this.blockedKeys = config?.blockedShortcuts || this.defaultShortcuts;
+		this.blockedKeysWithModifiers =
+			config?.blockedModifierShortcuts || this.defaultShortcutsWithModifiers;
 	}
 
 	init() {
@@ -41,8 +46,11 @@ export class ProctoringGuard {
 				return;
 			}
 
-			// Block other specified shortcuts
-			if (this.blockedKeys.has(e.key) || (e.ctrlKey && e.shiftKey && this.blockedKeys.has(e.key))) {
+			if (this.blockedKeys.has(e.key)) {
+				e.preventDefault();
+			}
+
+			if (e.ctrlKey && e.shiftKey && this.blockedKeysWithModifiers.has(e.key)) {
 				e.preventDefault();
 			}
 		};

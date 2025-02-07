@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { validate } from '$src/actions/validate';
+	import { validate, type FormElements } from '$src/actions/validate';
 	import Select2 from '$src/components/Select2.svelte';
 	import constants from '$src/lib/constants';
 	import { fetchExtended } from '$src/lib/utils';
@@ -40,9 +40,16 @@
 	});
 	let isFormValid: boolean | undefined = $state();
 	let isFormLoading = $state(false);
+	let formRef: HTMLFormElement | undefined = $state();
 
 	const updateError = (field: keyof FormFields, error: string) => {
 		formState[field] = error;
+		const controlElement: FormElements | undefined | null = formRef?.querySelector(
+			`[name="${field}"]`
+		);
+		if (controlElement) {
+			controlElement.setCustomValidity(error);
+		}
 	};
 
 	const handleSubmit: EventHandler<SubmitEvent, HTMLFormElement> = async (event) => {
@@ -103,9 +110,12 @@
 		}
 	};
 
-	onMount(() => {
+	onMount(async () => {
 		if (data.departments.error || !data.departments.result.status) {
 			toast.error('Error while fetching departments');
+		}
+		if ($sessionStore.sessionToken) {
+			await goto('/');
 		}
 	});
 </script>
@@ -114,9 +124,8 @@
 <div class="registration">
 	<header class="vstack align-items-center mb-4">
 		<div class="fs-2 fw-medium">Register</div>
-		<div class="text-body-secondary">Let us know you more</div>
 	</header>
-	<form novalidate class:was-validated={isFormValid} onsubmit={handleSubmit}>
+	<form novalidate class:was-validated={isFormValid} onsubmit={handleSubmit} bind:this={formRef}>
 		<div class="mb-3">
 			<label class="form-label" for="firstName">First Name</label>
 			<input

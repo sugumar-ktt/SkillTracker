@@ -78,7 +78,7 @@
 						)}
 					</div>
 					<footer class="permission-dialog_actions">
-						<button type="button" class="btn btn-white" onmousedown={handleDecline}>Decline</button>
+						<!-- <button type="button" class="btn btn-white" onmousedown={handleDecline}>Decline</button> -->
 						<button type="button" class="btn btn-primary" onmousedown={handleAccept}>
 							Accept
 						</button>

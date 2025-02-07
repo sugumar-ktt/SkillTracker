@@ -216,7 +216,7 @@
 		}
 
 		.content-wrapper {
-			max-width: var(--container-lg);
+			max-width: var(--container-xl);
 		}
 
 		.right-section {

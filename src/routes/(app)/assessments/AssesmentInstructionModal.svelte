@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Modal } from 'bootstrap';
-	import { AlertTriangle, Maximize } from 'lucide-svelte';
+	import { AlertTriangle } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
 	type Props = {
@@ -90,12 +90,8 @@
 												logged as violations.
 											</li>
 											<li>
-												Multiple violations may result in automatic disqualification from the
+												Violations will result in automatic disqualification from the
 												assessment.
-											</li>
-											<li>
-												Ensure you have a stable internet connection and a distraction-free
-												environment before starting.
 											</li>
 										</ul>
 									</div>
@@ -104,7 +100,7 @@
 						</div>
 					</div>
 					<footer class="instruction-dialog_actions">
-						<button type="button" class="btn btn-white" onmousedown={handleDecline}>Decline</button>
+						<!-- <button type="button" class="btn btn-white" onmousedown={handleDecline}>Decline</button> -->
 						<button type="button" class="btn btn-primary" onmousedown={handleAccept}>
 							I Understand & Accept
 						</button>
