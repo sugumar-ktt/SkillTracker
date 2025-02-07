@@ -13,7 +13,6 @@
 	import { Carousel } from 'bootstrap';
 	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { Toaster } from 'svelte-5-french-toast';
 	import type { LayoutProps } from '../$types';
 
 	const slides = [
@@ -63,7 +62,6 @@
 	});
 </script>
 
-<Toaster />
 <div class="layout">
 	<div class="container-fluid h-100">
 		<div class="row h-100">

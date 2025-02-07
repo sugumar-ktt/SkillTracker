@@ -7,7 +7,7 @@
 	import type { APIResponse, Candidate } from '$src/types';
 	import { Loader2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import toast from 'svelte-5-french-toast';
+	import toast, { Toaster } from 'svelte-5-french-toast';
 	import type { EventHandler } from 'svelte/elements';
 
 	type FormFields = {
@@ -81,6 +81,7 @@
 	});
 </script>
 
+<Toaster />
 <div class="login">
 	<header class="vstack align-items-center mb-4">
 		<div class="fs-2 fw-medium">Login</div>
